@@ -1,0 +1,318 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>SMSU Swimming – Box Breathing</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <style>
+    input[type=number]::-webkit-outer-spin-button,
+    input[type=number]::-webkit-inner-spin-button { -webkit-appearance: none; margin: 0; }
+    input[type=number] { -moz-appearance: textfield; }
+    .focus-ring:focus { outline: none; box-shadow: 0 0 0 4px rgba(255, 204, 51, 0.45); }
+    .no-select { -webkit-user-select: none; -ms-user-select: none; user-select: none; }
+  </style>
+</head>
+<body class="bg-[#FFF8DC] text-neutral-900 min-h-screen flex flex-col">
+  <header class="px-6 py-5 border-b border-neutral-300 bg-yellow-100/60 backdrop-blur">
+    <div class="max-w-6xl mx-auto flex items-center gap-4">
+      <div>
+        <h1 class="text-2xl sm:text-3xl font-bold tracking-tight">
+          <span class="text-yellow-700">SMSU</span> Swimming Team · Box Breathing
+        </h1>
+        <p class="text-neutral-600 text-sm">
+          Train calm, focus, and oxygen efficiency. Customize inhale, hold, and exhale times.
+        </p>
+      </div>
+    </div>
+  </header>
+
+  <main class="flex-1">
+    <div class="max-w-6xl mx-auto p-6 grid lg:grid-cols-2 gap-6">
+      <!-- Breathing Visual -->
+      <section class="bg-yellow-50 border border-yellow-200 rounded-2xl p-6 shadow-xl">
+        <div class="flex flex-col items-center">
+          <div class="relative">
+            <svg id="boxSvg" width="400" height="400" viewBox="0 0 220 220" class="drop-shadow-xl">
+              <defs>
+                <linearGradient id="gold" x1="0%" y1="0%" x2="100%" y2="100%">
+                  <stop offset="0%" stop-color="#ffcc33"/>
+                  <stop offset="100%" stop-color="#fff3b0"/>
+                </linearGradient>
+              </defs>
+              <rect x="10" y="10" width="200" height="200" rx="16" ry="16" 
+                    fill="none" stroke="#e5e5e5" stroke-width="10"/>
+              <rect id="boxPath" x="10" y="10" width="200" height="200" rx="16" ry="16"
+                    fill="none" stroke="url(#gold)" stroke-width="10" stroke-linecap="round"/>
+            </svg>
+
+            <!-- Center dynamic phase text -->
+            <div id="phaseBadge" class="absolute inset-0 grid place-items-center pointer-events-none">
+              <div class="rounded-xl bg-yellow-100/80 px-6 py-3 border border-yellow-200">
+                <span id="phaseText" class="text-4xl sm:text-5xl font-extrabold">Inhale</span>
+              </div>
+            </div>
+          </div>
+
+          <div class="mt-6 text-center">
+            <div class="text-2xl sm:text-3xl text-yellow-700 font-bold" id="sessionTimeLeft">
+              Total Time Left: 05:00
+            </div>
+            <div class="text-7xl sm:text-8xl font-extrabold tabular-nums mt-2" id="countdown">4</div>
+            <div class="mt-2 text-neutral-600 text-xl" id="cueText">Inhale through the nose</div>
+          </div>
+
+          <div class="mt-6 flex flex-wrap items-center justify-center gap-3">
+            <button id="toggleBtn" class="px-6 py-3 rounded-xl bg-yellow-400 text-neutral-900 text-lg font-semibold hover:brightness-95 active:brightness-90 focus-ring">Start</button>
+            <button id="resetBtn" class="px-6 py-3 rounded-xl bg-neutral-200 border border-neutral-300 text-lg hover:bg-neutral-300 focus-ring">Reset</button>
+          </div>
+        </div>
+      </section>
+
+      <!-- Settings Panel -->
+      <section class="bg-yellow-50 border border-yellow-200 rounded-2xl p-6 shadow-xl">
+        <h2 class="text-xl font-bold">Session Settings</h2>
+        <p class="text-neutral-600 text-sm mt-1">
+          Adjust the seconds for each phase. Default pattern is 4–4–4–4.
+        </p>
+
+        <div class="mt-4 grid grid-cols-2 sm:grid-cols-4 gap-4">
+          <div>
+            <label class="block text-sm text-neutral-600 mb-1" for="inhale">Inhale (s)</label>
+            <input id="inhale" type="number" min="2" max="12" value="4" 
+                   class="w-full bg-neutral-100 border border-neutral-300 rounded-lg px-3 py-2 focus-ring text-lg text-center" />
+          </div>
+          <div>
+            <label class="block text-sm text-neutral-600 mb-1" for="hold1">Hold 1 (s)</label>
+            <input id="hold1" type="number" min="2" max="12" value="4" 
+                   class="w-full bg-neutral-100 border border-neutral-300 rounded-lg px-3 py-2 focus-ring text-lg text-center" />
+          </div>
+          <div>
+            <label class="block text-sm text-neutral-600 mb-1" for="exhale">Exhale (s)</label>
+            <input id="exhale" type="number" min="2" max="14" value="4" 
+                   class="w-full bg-neutral-100 border border-neutral-300 rounded-lg px-3 py-2 focus-ring text-lg text-center" />
+          </div>
+          <div>
+            <label class="block text-sm text-neutral-600 mb-1" for="hold2">Hold 2 (s)</label>
+            <input id="hold2" type="number" min="2" max="12" value="4" 
+                   class="w-full bg-neutral-100 border border-neutral-300 rounded-lg px-3 py-2 focus-ring text-lg text-center" />
+          </div>
+        </div>
+
+        <div class="mt-4 grid sm:grid-cols-2 gap-4">
+          <!-- Session Length -->
+          <div class="p-4 bg-yellow-50 border border-yellow-200 rounded-xl">
+            <label class="block text-sm text-neutral-600 mb-1" for="sessionMin">Session Length (minutes)</label>
+            <input id="sessionMin" type="number" min="1" max="30" value="3" 
+                   class="w-full bg-neutral-100 border border-neutral-300 rounded-lg px-3 py-2 focus-ring text-lg text-center" />
+            <p class="text-neutral-500 text-xs mt-1">
+              Common pre-race: 3–5 minutes · Recovery: 5–10 minutes
+            </p>
+          </div>
+
+          <!-- Save Settings -->
+          <div class="p-4 bg-yellow-50 border border-yellow-200 rounded-xl">
+            <div class="flex items-center justify-between">
+              <div>
+                <div class="text-sm text-neutral-600">Breath Rhythm</div>
+                <div class="font-semibold" id="patternLabel">4–4–4–4</div>
+              </div>
+              <button id="savePattern" 
+                      class="px-4 py-2 rounded-lg bg-neutral-200 border border-neutral-300 hover:bg-neutral-300 focus-ring text-sm">
+                Save Pattern
+              </button>
+            </div>
+            <p class="text-neutral-500 text-xs mt-2">
+              Your settings will be saved locally and automatically loaded next time.
+            </p>
+          </div>
+        </div>
+
+        <div class="mt-6">
+          <h3 class="font-semibold mb-2">How to Breathe</h3>
+          <ul class="space-y-2 text-sm text-neutral-700 list-disc pl-5">
+            <li><span class="font-medium">Inhale</span> deeply through the nose, expanding the belly (diaphragm first).</li>
+            <li><span class="font-medium">Hold</span> gently—keep shoulders relaxed; avoid straining.</li>
+            <li><span class="font-medium">Exhale</span> slowly through pursed lips; imagine fogging a mirror.</li>
+            <li><span class="font-medium">Hold</span> at empty—stay calm; keep the jaw loose.</li>
+          </ul>
+          <p class="text-neutral-500 text-xs mt-3">
+            Tip: At altitude, start with shorter holds (e.g., 3–3–4–3) if lightheaded. Increase gradually as comfortable.
+          </p>
+          <div class="mt-6 text-center">
+    <img src="logo.png" alt="SMSU Logo" class="mx-auto h-60 w-auto">
+    <p class="text-sm text-neutral-600 mt-2">Southwest Minnesota State University Swimming Team</p>
+  </div>
+</div>
+        </div>
+      </section>
+    </div>
+  </main>
+
+  <footer class="px-6 py-6 border-t border-neutral-300 text-center text-neutral-600 text-sm">
+    © <span id="year"></span> SMSU Swimming · Go Mustangs!
+  </footer>
+
+  <script>
+    document.getElementById('year').textContent = new Date().getFullYear();
+
+    const countdownEl = document.getElementById('countdown');
+    const toggleBtn = document.getElementById('toggleBtn');
+    const resetBtn = document.getElementById('resetBtn');
+    const sessionMinInput = document.getElementById('sessionMin');
+    const sessionTimeLeft = document.getElementById('sessionTimeLeft');
+    const boxPath = document.getElementById('boxPath');
+    const phaseText = document.getElementById('phaseText');
+
+    const inhaleInput = document.getElementById('inhale');
+    const hold1Input = document.getElementById('hold1');
+    const exhaleInput = document.getElementById('exhale');
+    const hold2Input = document.getElementById('hold2');
+
+    const savePatternBtn = document.getElementById('savePattern');
+    const patternLabel = document.getElementById('patternLabel');
+
+    let countdown = 4;
+    let isRunning = false;
+    let interval;
+    let totalTimeSec = sessionMinInput.value * 60;
+
+    const phases = ["Inhale", "Hold", "Exhale", "Hold"];
+    const boxLength = 800;
+    boxPath.style.strokeDasharray = boxLength;
+    boxPath.style.strokeDashoffset = boxLength;
+
+    function updateCountdown() {
+      countdownEl.textContent = countdown;
+    }
+
+    function updateTotalTimeDisplay() {
+      let minutes = Math.floor(totalTimeSec / 60);
+      let seconds = totalTimeSec % 60;
+      sessionTimeLeft.textContent = `Total Time Left: ${minutes.toString().padStart(2,'0')}:${seconds.toString().padStart(2,'0')}`;
+    }
+
+    function animateBox(progress) {
+      boxPath.style.strokeDashoffset = boxLength - boxLength * progress;
+    }
+
+    // Get dynamic phase times
+    function getPhaseDurations() {
+      return [
+        parseInt(inhaleInput.value),
+        parseInt(hold1Input.value),
+        parseInt(exhaleInput.value),
+        parseInt(hold2Input.value)
+      ];
+    }
+
+    function getTotalCycleDuration() {
+      return getPhaseDurations().reduce((sum, val) => sum + val, 0);
+    }
+
+    let cycleElapsed = 0;
+    let currentPhaseIndex = 0;
+
+    function updatePhaseTextAndCountdown() {
+      const phaseDurations = getPhaseDurations();
+      let time = cycleElapsed;
+      let phase = 0;
+
+      while (time >= phaseDurations[phase]) {
+        time -= phaseDurations[phase];
+        phase++;
+      }
+      currentPhaseIndex = phase;
+
+      const remaining = phaseDurations[phase] - time;
+      countdown = remaining;
+      phaseText.textContent = phases[phase];
+      countdownEl.textContent = remaining;
+    }
+
+    function getProgressWithinCycle() {
+      return cycleElapsed / getTotalCycleDuration();
+    }
+
+    function startCountdown() {
+      interval = setInterval(() => {
+        cycleElapsed++;
+        totalTimeSec--;
+
+        updatePhaseTextAndCountdown();
+        updateTotalTimeDisplay();
+        animateBox(getProgressWithinCycle());
+
+        if (cycleElapsed >= getTotalCycleDuration()) {
+          cycleElapsed = 0; // restart cycle
+        }
+
+        if (totalTimeSec <= 0) {
+          clearInterval(interval);
+          countdownEl.textContent = 'Done';
+          phaseText.textContent = 'Finished';
+          animateBox(0);
+          return;
+        }
+      }, 1000);
+    }
+
+    toggleBtn.addEventListener('click', () => {
+      if (!isRunning) {
+        isRunning = true;
+        startCountdown();
+        toggleBtn.textContent = 'Pause';
+      } else {
+        isRunning = false;
+        clearInterval(interval);
+        toggleBtn.textContent = 'Start';
+      }
+    });
+
+    resetBtn.addEventListener('click', () => {
+      clearInterval(interval);
+      totalTimeSec = sessionMinInput.value * 60;
+      cycleElapsed = 0;
+      currentPhaseIndex = 0;
+      updatePhaseTextAndCountdown();
+      updateTotalTimeDisplay();
+      animateBox(0);
+      phaseText.textContent = "Inhale";
+      toggleBtn.textContent = 'Start';
+      isRunning = false;
+    });
+
+    sessionMinInput.addEventListener('change', () => {
+      totalTimeSec = sessionMinInput.value * 60;
+      updateTotalTimeDisplay();
+    });
+
+    // Save pattern to local storage
+    savePatternBtn.addEventListener('click', () => {
+      const pattern = {
+        inhale: inhaleInput.value,
+        hold1: hold1Input.value,
+        exhale: exhaleInput.value,
+        hold2: hold2Input.value
+      };
+      localStorage.setItem('breathingPattern', JSON.stringify(pattern));
+      patternLabel.textContent = `${pattern.inhale}–${pattern.hold1}–${pattern.exhale}–${pattern.hold2}`;
+      alert('Pattern saved!');
+    });
+
+    // Load saved pattern on page load
+    window.addEventListener('load', () => {
+      const savedPattern = JSON.parse(localStorage.getItem('breathingPattern'));
+      if (savedPattern) {
+        inhaleInput.value = savedPattern.inhale;
+        hold1Input.value = savedPattern.hold1;
+        exhaleInput.value = savedPattern.exhale;
+        hold2Input.value = savedPattern.hold2;
+        patternLabel.textContent = `${savedPattern.inhale}–${savedPattern.hold1}–${savedPattern.exhale}–${savedPattern.hold2}`;
+      }
+      updatePhaseTextAndCountdown();
+      updateTotalTimeDisplay();
+    });
+  </script>
+</body>
+</html>
